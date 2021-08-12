@@ -1,11 +1,14 @@
 const knex = require('../bancodedados/conexao');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const loginSquema = require('../validacoes/loginSquema');
 
 async function logarCliente(req, res) {
     const { email, senha } = req.body;
 
     try {
+        await loginSquema.validate(req.body);
+
         const cliente = await knex('cliente').where({ email }).first();
 
         if (!cliente) {

@@ -1,10 +1,13 @@
 const bcrypt = require('bcrypt');
 const knex = require('../bancodedados/conexao');
+const { clienteSquema } = require('../validacoes/clienteSchema');
 
 async function cadastrarCliente(req, res){
     const { nome, email, telefone, senha} = req.body;
     
     try {
+        await clienteSquema.validate(req.body);
+
         const emailEncontrado = await knex('cliente').where({ email }).first();
 
         if (emailEncontrado) {
