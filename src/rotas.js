@@ -2,14 +2,19 @@ const express = require('express');
 
 const clientes = require('./controladores/clientes');
 const loginControlador = require('./controladores/login');
+const verificaLogin = require('./filtros/verificaLogin');
+const restaurantes = require('./controladores/restaurantes');
+
 
 
 const rotas = express();
 
-//cadastro de usuario/cliente
 rotas.post('/clientes', clientes.cadastrarCliente);
 
-//login
 rotas.post('/login', loginControlador.logarCliente);
+
+rotas.use(verificaLogin);
+
+rotas.get('/restaurantes', restaurantes.listarRestaurantes);
 
 module.exports = rotas;
