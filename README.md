@@ -13,11 +13,11 @@ consta a criação e edição de clientes, listagem de restaurantes, entre outra
 ## O que este projeto utiliza?
 
 - javascript;
-- `express`, para criar o servidor;
+- `node.js` e`express.js`, para criar o servidor;
 - `dotenv`, para uso das variáveis de ambiente;
 - `jsonwebtoken`, para autenticação de sessão com token;
 - `bcrypt`, para criptografar senhas;
-- `knex`, para criação de querys;
+- `knex.js`, para criação de querys;
 - `yup`, para validações dos parâmetros da requisição;
 
 
