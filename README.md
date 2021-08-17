@@ -34,7 +34,7 @@ consta a criação e edição de clientes, listagem de restaurantes, entre outra
   - A funcionalidade de edição de um cliente logado funciona requisitando `PUT /clientes`.
 
 - Restaurantes
-    - A funcionalidade de listar todo os restaurantes cadastrados funciona requisitando `GET /clientes`;
+    - A funcionalidade de listar todo os restaurantes cadastrados funciona requisitando `GET /restaurantes`;
 
 
  ## Fluxo da aplicação
