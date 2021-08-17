@@ -76,9 +76,30 @@ async function editarDadosCliente(req, res){
     }
 }
 
+async function cadastrarEnderecoCliente(req, res){
+    const { cliente } = req;
+    const { cep, endereco, complemento} = req.body;
+    
+    try {
+        const enderecoCadastrado = await knex('endereco')
+            .insert({ cep, endereco, complemento, cliente_id: cliente.id})
+            .returning('*');
+
+        if (!enderecoCadastrado) {
+            return res.status(400).json('Não foi possível cadastrar o endereço do cliente');
+        } 
+
+        return res.status(201).json('Endereço cadastrado com sucesso.');
+   
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
 
 module.exports = {
     obterCliente,
     cadastrarCliente,
-    editarDadosCliente   
+    editarDadosCliente,
+    cadastrarEnderecoCliente   
 }
