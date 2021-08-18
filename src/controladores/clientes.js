@@ -96,10 +96,30 @@ async function cadastrarEnderecoCliente(req, res){
     }
 }
 
+async function obterEnderecoCliente(req, res){
+    const { cliente } = req;
+
+    try {
+        const endereco = await knex('endereco')
+            .where({ cliente_id: cliente.id })
+            .first();
+
+        if (!endereco) {
+            return res.status(404).json('Ops, ainda não há endereço cadastrado pra esse cliente');
+        }
+
+        return res.status(200).json(endereco);
+
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
 
 module.exports = {
     obterCliente,
     cadastrarCliente,
     editarDadosCliente,
-    cadastrarEnderecoCliente   
+    cadastrarEnderecoCliente,
+    obterEnderecoCliente   
 }

@@ -34,7 +34,7 @@ async function listarProdutosAtivos (req, res) {
 
     try {
         const produtos = await knex('produto')
-            .where({ restaurante_id: restauranteId })
+            .where({ restaurante_id: restauranteId, ativo: true })
             .returning('*');
 
         return res.status(200).json(produtos);
@@ -64,10 +64,31 @@ async function obterProduto (req, res) {
     }
 }
 
+async function finalizarPedido (req, res){
+    const { cliente } = req;
+    const { cep, endereco, complemento} = req.body;
+    
+    try {
+        const enderecoCadastrado = await knex('endereco')
+            .insert({ cep, endereco, complemento, cliente_id: cliente.id})
+            .returning('*');
+
+        if (!enderecoCadastrado) {
+            return res.status(400).json('Não foi possível cadastrar o endereço do cliente');
+        } 
+
+        return res.status(201).json('Endereço cadastrado com sucesso.');
+   
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
 
 module.exports = {
     listarRestaurantes,
     obterRestaurante,
     listarProdutosAtivos,
-    obterProduto
+    obterProduto,
+    finalizarPedido
 }

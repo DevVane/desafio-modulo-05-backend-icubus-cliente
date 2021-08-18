@@ -17,8 +17,10 @@ rotas.get('/restaurantes', restaurantes.listarRestaurantes);
 rotas.get('/restaurantes/:id', restaurantes.obterRestaurante);
 rotas.get('/restaurantes/:id/produtos/ativos', restaurantes.listarProdutosAtivos);
 rotas.get('/restaurantes/:id/produtos/:idProduto', restaurantes.obterProduto);
+rotas.post('/restaurantes/:id/finalizar-pedido', restaurantes.finalizarPedido);
 
 rotas.get('/clientes', clientes.obterCliente);
+rotas.get('/clientes/enderecos', clientes.obterEnderecoCliente);
 rotas.put('/clientes', clientes.editarDadosCliente);
 rotas.post('/clientes/enderecos', clientes.cadastrarEnderecoCliente);
 
