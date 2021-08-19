@@ -1,4 +1,5 @@
 const knex = require('../bancodedados/conexao');
+const idParamsSquema = require('../validacoes/idParamsSchema');
 
 async function listarRestaurantes (req, res) {
     try {
@@ -14,6 +15,8 @@ async function obterRestaurante (req, res) {
     const { id: restauranteId } = req.params;
 
     try {
+        await idParamsSquema.validate(req.params);
+
         const restaurante = await knex('restaurante')
             .where({ id: restauranteId })
             .first();
@@ -33,6 +36,8 @@ async function listarProdutosAtivos (req, res) {
     const { id: restauranteId } = req.params;
 
     try {
+        await idParamsSquema.validate(req.params);
+
         const produtos = await knex('produto')
             .where({ restaurante_id: restauranteId, ativo: true })
             .returning('*');
@@ -46,9 +51,10 @@ async function listarProdutosAtivos (req, res) {
 
 async function obterProduto (req, res) {
     const { id: restauranteId, idProduto } = req.params;
-    console.log(req.params);
 
     try {
+        await idParamsSquema.validate(req.params);
+
         const produto = await knex('produto')
             .where({ restaurante_id: restauranteId, id: idProduto })
             .first();
@@ -66,18 +72,66 @@ async function obterProduto (req, res) {
 
 async function finalizarPedido (req, res){
     const { cliente } = req;
-    const { cep, endereco, complemento} = req.body;
+    const { id: restauranteId } = req.params;
+    const { produtos, subtotal, taxaEntrega, total} = req.body;
     
     try {
+        await idParamsSquema.validate(req.params);
+
         const enderecoCadastrado = await knex('endereco')
-            .insert({ cep, endereco, complemento, cliente_id: cliente.id})
-            .returning('*');
+            .where({cliente_id: cliente.id})
+            .first();
 
         if (!enderecoCadastrado) {
-            return res.status(400).json('Não foi possível cadastrar o endereço do cliente');
-        } 
+            return res.status(404).json('Ops, ainda não há endereço cadastrado pra esse cliente');
+        }
 
-        return res.status(201).json('Endereço cadastrado com sucesso.');
+        const produtosEmQtdInsuficiente = produtos.filter(produto => produto.quantidade < 1);
+        
+        if  (produtosEmQtdInsuficiente.length !== 0) {
+            return res.status(400).json('Compre pelo menos uma unidade de cada produto');
+        }
+
+        for (const produto of produtos) {
+            const produtoDesativo = await knex('produto')
+                .where({id: produto.id, ativo: false})
+                .returning('*');
+            
+            if(produtoDesativo.length !== 0){
+                return res.status(400).json(`O produto ${produtoDesativo[0].nome} não está mais disponível`);
+            }
+
+            const pedido = await knex('pedido')
+                .insert({
+                    subtotal, 
+                    taxa_entrega: taxaEntrega, 
+                    total, 
+                    restaurante_id: restauranteId,
+                    cliente_id: cliente.id,
+                    produto_id: produto.id
+                })
+                .returning('*');
+            
+            if (pedido[0].length === 0) {
+                return res.status(400).json('Não foi possível finalizar o pedido');
+            }
+
+            const itensPedido = await knex('itens_pedido')
+                .insert({
+                    preco: produto.preco,
+                    quantidade: produto.quantidade,
+                    preco_total: produto.precoTotal,
+                    pedido_id: pedido[0].id,
+                    produto_id: produto.id
+                })
+                .returning('*');
+
+            if (itensPedido.length === 0) {
+                return res.status(400).json('Não foi possível registrar o pedido com seus itens');
+            } 
+        } 
+        
+        return res.status(201).json('Pedido finalizado com sucesso.');
    
     } catch (error) {
         return res.status(400).json(error.message);

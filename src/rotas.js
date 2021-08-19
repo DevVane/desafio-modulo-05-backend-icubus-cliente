@@ -25,5 +25,4 @@ rotas.put('/clientes', clientes.editarDadosCliente);
 rotas.post('/clientes/enderecos', clientes.cadastrarEnderecoCliente);
 
 
-
 module.exports = rotas;
