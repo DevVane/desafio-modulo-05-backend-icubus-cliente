@@ -92,6 +92,20 @@ async function finalizarPedido (req, res){
             return res.status(400).json('Compre pelo menos uma unidade de cada produto');
         }
 
+        const pedido = await knex('pedido')
+            .insert({
+                subtotal, 
+                taxa_entrega: taxaEntrega, 
+                total, 
+                restaurante_id: restauranteId,
+                cliente_id: cliente.id
+            })
+            .returning('*');
+    
+        if (pedido[0].length === 0) {
+            return res.status(400).json('Não foi possível finalizar o pedido');
+        } 
+
         for (const produto of produtos) {
             const produtoDesativo = await knex('produto')
                 .where({id: produto.id, ativo: false})
@@ -99,21 +113,6 @@ async function finalizarPedido (req, res){
             
             if(produtoDesativo.length !== 0){
                 return res.status(400).json(`O produto ${produtoDesativo[0].nome} não está mais disponível`);
-            }
-
-            const pedido = await knex('pedido')
-                .insert({
-                    subtotal, 
-                    taxa_entrega: taxaEntrega, 
-                    total, 
-                    restaurante_id: restauranteId,
-                    cliente_id: cliente.id,
-                    produto_id: produto.id
-                })
-                .returning('*');
-            
-            if (pedido[0].length === 0) {
-                return res.status(400).json('Não foi possível finalizar o pedido');
             }
 
             const itensPedido = await knex('itens_pedido')
