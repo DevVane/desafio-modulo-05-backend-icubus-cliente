@@ -14,13 +14,15 @@ const clienteEditarDadosSquema = yup.object().shape({
     nome: yup.string().max(100).required().trim(),
     email: yup.string().max(100).email().required(),
     senha: yup.string().trim(),
-    telefone: yup.string().max(25).trim().phone("BR", true, 'Informe um número de telefone válido. DDD + os 9 digitos').required(),
+    telefone: yup.string().max(25).trim().phone("BR", true, 'Informe um número de telefone válido. DDD + os 9 digitos').required()
+
 })
 
 const enderecoSquema = yup.object().shape({
     cep: yup.string().max(25).required(),
     endereco: yup.string().max(200).trim().required(),
-    complemento: yup.string().max(100),
+    complemento: yup.string().max(100)
+    
 })
 
 

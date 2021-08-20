@@ -63,15 +63,34 @@ async function cadastrarEnderecoCliente(req, res){
     try {
         await enderecoSquema.validate(req.body);
 
-        const enderecoCadastrado = await knex('endereco')
+        const clienteJaTemEndereco = await knex('endereco')
+            .where({ cliente_id: cliente.id })
+            .first();
+        
+        if (clienteJaTemEndereco) {
+            const enderecoAtualizado = await knex('endereco')
+            .where({ cliente_id: cliente.id })
+            .update({ cep, endereco, complemento})
+            .returning('*');
+
+            if (!enderecoAtualizado) {
+                return res.status(400).json('Não foi possível atualizar o endereço do cliente');
+            } 
+
+            return res.status(201).json('Endereço atualizado com sucesso.');
+
+        }
+        else {
+            const enderecoCadastrado = await knex('endereco')
             .insert({ cep, endereco, complemento, cliente_id: cliente.id})
             .returning('*');
 
-        if (!enderecoCadastrado) {
-            return res.status(400).json('Não foi possível cadastrar o endereço do cliente');
-        } 
+            if (!enderecoCadastrado) {
+                return res.status(400).json('Não foi possível cadastrar o endereço do cliente');
+            } 
 
-        return res.status(201).json('Endereço cadastrado com sucesso.');
+            return res.status(201).json('Endereço cadastrado com sucesso.');
+        }
    
     } catch (error) {
         return res.status(400).json(error.message);

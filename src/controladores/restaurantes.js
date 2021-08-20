@@ -110,7 +110,7 @@ async function finalizarPedido (req, res){
 
         for (const produto of produtos) {
             const produtoEncontrado = await knex('produto')
-                .where({id: produto.id})
+                .where({id: produto.id, restaurante_id: restauranteId})
                 .first();
             
             if(!produtoEncontrado){
