@@ -1,11 +1,30 @@
 const bcrypt = require('bcrypt');
 const knex = require('../bancodedados/conexao');
-const { clienteSquema, clienteEditarDadosSquema } = require('../validacoes/clienteSchema');
+const { clienteSquema, clienteEditarDadosSquema, enderecoSquema } = require('../validacoes/clienteSchema');
 
 async function obterCliente(req, res){
     const { cliente } = req;
 
     return res.status(200).json({ cliente });
+}
+
+async function obterEnderecoCliente(req, res){
+    const { cliente } = req;
+
+    try {
+        const endereco = await knex('endereco')
+            .where({ cliente_id: cliente.id })
+            .first();
+
+        if (!endereco) {
+            return res.status(404).json('Ops, ainda não há endereço cadastrado pra esse cliente');
+        }
+
+        return res.status(200).json(endereco);
+
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
 }
 
 async function cadastrarCliente(req, res){
@@ -31,6 +50,28 @@ async function cadastrarCliente(req, res){
         } 
 
         return res.status(201).json('Cliente cadastrado com sucesso.');
+   
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
+async function cadastrarEnderecoCliente(req, res){
+    const { cliente } = req;
+    const { cep, endereco, complemento} = req.body;
+    
+    try {
+        await enderecoSquema.validate(req.body);
+
+        const enderecoCadastrado = await knex('endereco')
+            .insert({ cep, endereco, complemento, cliente_id: cliente.id})
+            .returning('*');
+
+        if (!enderecoCadastrado) {
+            return res.status(400).json('Não foi possível cadastrar o endereço do cliente');
+        } 
+
+        return res.status(201).json('Endereço cadastrado com sucesso.');
    
     } catch (error) {
         return res.status(400).json(error.message);
@@ -76,50 +117,13 @@ async function editarDadosCliente(req, res){
     }
 }
 
-async function cadastrarEnderecoCliente(req, res){
-    const { cliente } = req;
-    const { cep, endereco, complemento} = req.body;
-    
-    try {
-        const enderecoCadastrado = await knex('endereco')
-            .insert({ cep, endereco, complemento, cliente_id: cliente.id})
-            .returning('*');
 
-        if (!enderecoCadastrado) {
-            return res.status(400).json('Não foi possível cadastrar o endereço do cliente');
-        } 
-
-        return res.status(201).json('Endereço cadastrado com sucesso.');
-   
-    } catch (error) {
-        return res.status(400).json(error.message);
-    }
-}
-
-async function obterEnderecoCliente(req, res){
-    const { cliente } = req;
-
-    try {
-        const endereco = await knex('endereco')
-            .where({ cliente_id: cliente.id })
-            .first();
-
-        if (!endereco) {
-            return res.status(404).json('Ops, ainda não há endereço cadastrado pra esse cliente');
-        }
-
-        return res.status(200).json(endereco);
-
-    } catch (error) {
-        return res.status(400).json(error.message);
-    }
-}
 
 
 module.exports = {
     obterCliente,
+    obterEnderecoCliente,
     cadastrarCliente,
-    editarDadosCliente,
     cadastrarEnderecoCliente,
-    obterEnderecoCliente   
+    editarDadosCliente    
 }

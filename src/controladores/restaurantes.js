@@ -1,5 +1,6 @@
 const knex = require('../bancodedados/conexao');
 const idParamsSquema = require('../validacoes/idParamsSchema');
+const { pedidoSquema } = require('../validacoes/pedidoSquema');
 
 async function listarRestaurantes (req, res) {
     try {
@@ -77,6 +78,7 @@ async function finalizarPedido (req, res){
     
     try {
         await idParamsSquema.validate(req.params);
+        await pedidoSquema.validate(req.body);
 
         const enderecoCadastrado = await knex('endereco')
             .where({cliente_id: cliente.id})
@@ -107,6 +109,14 @@ async function finalizarPedido (req, res){
         } 
 
         for (const produto of produtos) {
+            const produtoEncontrado = await knex('produto')
+                .where({id: produto.id})
+                .first();
+            
+            if(!produtoEncontrado){
+                return res.status(404).json(`O produto de id ${produto.id} não foi encontrado`);
+            }
+
             const produtoDesativo = await knex('produto')
                 .where({id: produto.id, ativo: false})
                 .returning('*');
@@ -126,6 +136,8 @@ async function finalizarPedido (req, res){
                 .returning('*');
 
             if (itensPedido.length === 0) {
+                await knex('pedido').del().where({ id: pedido[0].id });
+
                 return res.status(400).json('Não foi possível registrar o pedido com seus itens');
             } 
         } 

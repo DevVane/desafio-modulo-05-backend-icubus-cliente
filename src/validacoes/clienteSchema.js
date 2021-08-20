@@ -17,8 +17,15 @@ const clienteEditarDadosSquema = yup.object().shape({
     telefone: yup.string().max(25).trim().phone("BR", true, 'Informe um número de telefone válido. DDD + os 9 digitos').required(),
 })
 
+const enderecoSquema = yup.object().shape({
+    cep: yup.string().max(25).required(),
+    endereco: yup.string().max(200).trim().required(),
+    complemento: yup.string().max(100),
+})
+
 
 module.exports = {
     clienteSquema,
-    clienteEditarDadosSquema
+    clienteEditarDadosSquema,
+    enderecoSquema
 };
