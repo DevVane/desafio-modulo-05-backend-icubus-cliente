@@ -80,6 +80,21 @@ async function finalizarPedido (req, res){
         await idParamsSquema.validate(req.params);
         await pedidoSquema.validate(req.body);
 
+        const restaurante = await knex('restaurante')
+            .where({id: restauranteId})
+            .first();
+
+        if (!restaurante){
+            return res.status(404).json(`O restaurante de id ${restauranteId} não foi encontrado`);
+        }
+
+        const valorMinimo = restaurante.valor_minimo_pedido;
+        if (restaurante && (total < valorMinimo)){
+            const valorMinimoEmReais = (valorMinimo/100).toString().replace(".", ",");
+    
+            return res.status(400).json(`Para esse restaurante o pedido mínimo é R$ ${valorMinimoEmReais}`);
+        }
+
         const enderecoCadastrado = await knex('endereco')
             .where({cliente_id: cliente.id})
             .first();
