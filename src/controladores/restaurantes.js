@@ -164,11 +164,73 @@ async function finalizarPedido (req, res){
     }
 }
 
+async function listarPedidosNaoEntregues (req, res) {
+    const { cliente } = req;
+
+    try {
+        const pedidos = await knex('pedido')
+            .where({cliente_id: cliente.id, foi_entregue: false})
+            .orderBy('pedido.id', 'desc')
+            .returning('*');
+        
+        return res.status(200).json(pedidos);
+
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
+async function obterUltimoPedidoNaoEntregue (req, res) {
+    const { id: restauranteId} = req.params;
+
+    try {
+        await idParamsSquema.validate(req.params);
+
+        const pedido = await knex('pedido')
+            .where({ restaurante_id: restauranteId, foi_entregue: false})
+            .orderBy('pedido.id', 'desc')
+            .first();
+            
+        if (!pedido) {
+            return res.status(404).json('Parece que não há pedidos');
+        }
+
+        return res.status(200).json(pedido);
+
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
+async function definirPedidoComoEntregue (req, res){
+    const { id: pedidoId } = req.params;
+    
+    try {
+        await idParamsSquema.validate(req.params);
+
+        const pedidoAtualizado = await knex('pedido')
+            .update({ foi_entregue: true })
+            .where({ id: pedidoId});
+
+        if (!pedidoAtualizado) {
+            return res.status(404).json('Não foi possível atualizar a propriedade foi_entregue');
+        }
+
+        return res.status(200).json('Pedido foi entregue');
+    } catch (error) {
+        return res.status(400).json(error.message);
+    }
+}
+
 
 module.exports = {
     listarRestaurantes,
     obterRestaurante,
     listarProdutosAtivos,
     obterProduto,
-    finalizarPedido
+    finalizarPedido, 
+    listarPedidosNaoEntregues,
+    obterUltimoPedidoNaoEntregue,
+    definirPedidoComoEntregue
+    
 }
